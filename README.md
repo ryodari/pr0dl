@@ -1,6 +1,6 @@
 # pr0dl
 
-A fast command-line downloader for pr0gramm.com. Fetches media URLs from the API and downloads them in parallel with resume support.
+A command-line downloader for pr0gramm.com. Fetches media URLs from the API and downloads them in parallel with resume support.
 
 ## Requirements
 
