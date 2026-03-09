@@ -36,8 +36,6 @@ impl FetchState {
 #[derive(Deserialize, Debug)]
 pub struct ApiResponse {
     pub items: Vec<Item>,
-    #[serde(rename = "atEnd")]
-    pub at_end: Option<bool>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -109,8 +107,6 @@ impl Pr0grammClient {
 
         loop {
             let response = self.fetch_page_with_retry(state.older_id).await?;
-            let at_end = response.at_end.unwrap_or(false);
-
             for item in &response.items {
                 state.urls.push(media_url(&item.image));
             }
