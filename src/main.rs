@@ -162,7 +162,7 @@ async fn run_downloads(urls: Vec<String>, output: PathBuf, jobs: usize, failed: 
     eprintln!("Downloading to '{}' with {} parallel jobs...", output.display(), jobs);
     let stats = downloader.download_all(urls, failed).await?;
     eprintln!(
-        "\nFinished: {} downloaded, {} already existed, {} failed.",
+        "\nFinished: {} downloaded, {} skipped, {} failed.",
         stats.succeeded, stats.skipped, stats.failed
     );
     Ok(())
