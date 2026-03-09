@@ -53,7 +53,7 @@ Options:
   --tags <TAGS>         Download posts matching these tags
   --favourites          Download the user's favourites instead of their posts
   --flags <FLAGS>       Content flags (default: 1)
-  --output <DIR>        Download directory (default: ./downloads)
+  -o, --output <DIR>    Download directory (default: ./downloads)
   -j, --jobs <N>        Parallel download workers (default: 3)
   --pp <VALUE>          Session cookie (env: PR0DL_PP)
   --me <VALUE>          Session cookie (env: PR0DL_ME)
