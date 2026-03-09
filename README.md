@@ -16,7 +16,7 @@ cargo install --path .
 
 ## Authentication
 
-NSFW, NSFL and partner content requires a valid session. Log in to pr0gramm.com in your browser, then copy the `pp` and `me` cookie values from DevTools (Application → Cookies).
+NSFW, NSFL and POL content requires a valid session. Log in to pr0gramm.com in your browser, then copy the `pp` and `me` cookie values from DevTools (Application → Cookies).
 
 Pass them via flags or environment variables:
 
