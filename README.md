@@ -9,7 +9,7 @@ A command-line downloader for pr0gramm.com. Fetches media URLs from the API and 
 ## Installation
 
 ```bash
-git clone <repo>
+git clone https://github.com/ryodari/pr0dl.git
 cd pr0dl
 cargo install --path .
 ```
