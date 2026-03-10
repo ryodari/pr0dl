@@ -51,7 +51,7 @@ pr0dl run --user USERNAME --flags 31 --output ./downloads
 Options:
   --user <USER>         Download posts by this user
   --tags <TAGS>         Download posts matching these tags
-  --favourites          Download the user's favourites instead of their posts
+  --collection <NAME>   Download a specific collection (e.g. "favoriten")
   --flags <FLAGS>       Content flags (default: 1)
   -o, --output <DIR>    Download directory (default: ./downloads)
   -j, --jobs <N>        Parallel download workers (default: 3)
@@ -104,7 +104,13 @@ pr0dl run --tags "landscape photography" --flags 1 --output ./downloads
 Download a user's favourites:
 
 ```bash
-pr0dl run --user Ryodari --favourites --flags 31 --output ./downloads
+pr0dl run --user Ryodari --collection favoriten --flags 31 --output ./downloads
+```
+
+Download a specific named collection:
+
+```bash
+pr0dl run --user Ryodari --collection "meine-sammlung" --flags 31 --output ./downloads
 ```
 
 Fetch URLs first, then download separately:

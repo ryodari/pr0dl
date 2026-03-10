@@ -23,7 +23,8 @@ enum Command {
     Fetch {
         #[arg(long)] user: Option<String>,
         #[arg(long)] tags: Option<String>,
-        #[arg(long, default_value_t = false)] favourites: bool,
+        /// Download a specific collection (e.g. "favoriten", or any custom collection name)
+        #[arg(long)] collection: Option<String>,
         /// Content flags: 1=SFW, 2=NSFP, 4=NSFW, 8=NSFL (add to combine)
         #[arg(long, default_value_t = 1)] flags: u8,
         #[arg(long, env = "PR0DL_PP")] pp: Option<String>,
@@ -48,7 +49,8 @@ enum Command {
     Run {
         #[arg(long)] user: Option<String>,
         #[arg(long)] tags: Option<String>,
-        #[arg(long, default_value_t = false)] favourites: bool,
+        /// Download a specific collection (e.g. "favoriten", or any custom collection name)
+        #[arg(long)] collection: Option<String>,
         /// Content flags: 1=SFW, 2=NSFP, 4=NSFW, 8=NSFL (add to combine)
         #[arg(long, default_value_t = 1)] flags: u8,
         #[arg(long, env = "PR0DL_PP")] pp: Option<String>,
@@ -68,8 +70,8 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Fetch { user, tags, favourites, flags, pp, me, output, state } => {
-            let urls = fetch_urls(user, tags, favourites, flags, pp, me, &state).await?;
+        Command::Fetch { user, tags, collection, flags, pp, me, output, state } => {
+            let urls = fetch_urls(user, tags, collection, flags, pp, me, &state).await?;
             write_urls(&urls, output.as_deref()).await?;
             eprintln!("Fetched {} URLs.", urls.len());
         }
@@ -80,8 +82,8 @@ async fn main() -> Result<()> {
             run_downloads(urls, output, jobs, &failed).await?;
         }
 
-        Command::Run { user, tags, favourites, flags, pp, me, output, jobs, state, failed } => {
-            let urls = fetch_urls(user, tags, favourites, flags, pp, me, &state).await?;
+        Command::Run { user, tags, collection, flags, pp, me, output, jobs, state, failed } => {
+            let urls = fetch_urls(user, tags, collection, flags, pp, me, &state).await?;
             eprintln!("Fetched {} URLs total.", urls.len());
             run_downloads(urls, output, jobs, &failed).await?;
         }
@@ -90,10 +92,10 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn build_arg(user: Option<String>, tags: Option<String>, favourites: bool) -> String {
+fn build_arg(user: Option<String>, tags: Option<String>, collection: Option<String>) -> String {
     if let Some(u) = user {
-        if favourites {
-            format!("&user={u}&collection=favoriten&self=true")
+        if let Some(c) = collection {
+            format!("&user={u}&collection={c}&self=true")
         } else {
             format!("&user={u}")
         }
@@ -107,13 +109,13 @@ fn build_arg(user: Option<String>, tags: Option<String>, favourites: bool) -> St
 async fn fetch_urls(
     user: Option<String>,
     tags: Option<String>,
-    favourites: bool,
+    collection: Option<String>,
     flags: u8,
     pp: Option<String>,
     me: Option<String>,
     state_path: &std::path::Path,
 ) -> Result<Vec<String>> {
-    let arg = build_arg(user, tags, favourites);
+    let arg = build_arg(user, tags, collection);
     let pp = pp.unwrap_or_default();
     let me = me.unwrap_or_default();
     let client = Pr0grammClient::new(flags, arg, pp, me).context("Failed to create API client")?;
