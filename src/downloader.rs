@@ -27,10 +27,18 @@ impl Downloader {
             .build()
             .context("Failed to build download client")?;
 
-        Ok(Self { client, output_dir, concurrency })
+        Ok(Self {
+            client,
+            output_dir,
+            concurrency,
+        })
     }
 
-    pub async fn download_all(&self, urls: Vec<String>, failed_path: &std::path::Path) -> Result<DownloadStats> {
+    pub async fn download_all(
+        &self,
+        urls: Vec<String>,
+        failed_path: &std::path::Path,
+    ) -> Result<DownloadStats> {
         tokio::fs::create_dir_all(&self.output_dir)
             .await
             .context("Failed to create output directory")?;
@@ -44,7 +52,9 @@ impl Downloader {
         let overall = multi.add(ProgressBar::new(total));
         overall.set_style(
             ProgressStyle::default_bar()
-                .template("[{elapsed_precise}] [{bar:55.cyan/blue}] {pos}/{len} ({percent}%) ETA {eta}")?
+                .template(
+                    "[{elapsed_precise}] [{bar:55.cyan/blue}] {pos}/{len} ({percent}%) ETA {eta}",
+                )?
                 .progress_chars("█▓░"),
         );
 
@@ -69,9 +79,16 @@ impl Downloader {
                 let status = status.clone();
                 async move {
                     let result = download_file(
-                        client, url.clone(), idx, output_dir,
-                        rate_state, active, multi, status,
-                    ).await;
+                        client,
+                        url.clone(),
+                        idx,
+                        output_dir,
+                        rate_state,
+                        active,
+                        multi,
+                        status,
+                    )
+                    .await;
                     if result.is_err() {
                         failed_urls.lock().await.push(url);
                     }
@@ -181,7 +198,10 @@ async fn download_file(
         let resp = match client.get(&url).send().await {
             Ok(r) => r,
             Err(e) => {
-                let msg = format!("  ✗ network error on {filename} (attempt {}): {e}", attempt + 1);
+                let msg = format!(
+                    "  ✗ network error on {filename} (attempt {}): {e}",
+                    attempt + 1
+                );
                 multi.println(&msg).ok();
                 sleep(Duration::from_secs(delay_secs)).await;
                 delay_secs = (delay_secs * 2).min(300);
@@ -205,16 +225,22 @@ async fn download_file(
             {
                 let mut state = rate_state.lock().await;
                 let proposed = Instant::now() + Duration::from_secs(wait_secs);
-                if state.blocked_until.map_or(true, |cur| proposed > cur) {
+                if state.blocked_until.is_none_or(|cur| proposed > cur) {
                     state.blocked_until = Some(proposed);
                 }
             }
 
-            let source = if has_retry_after { "server" } else { "estimated" };
-            multi.println(format!(
+            let source = if has_retry_after {
+                "server"
+            } else {
+                "estimated"
+            };
+            multi
+                .println(format!(
                 "  ⏸  {status_code} on {filename} — pausing {wait_secs}s ({source}, attempt {}/{})",
                 attempt + 1, MAX_RETRIES
-            )).ok();
+            ))
+                .ok();
             sleep(Duration::from_secs(wait_secs)).await;
             // If server gave us a time, trust it + small buffer; otherwise exponential backoff.
             delay_secs = if has_retry_after {
@@ -233,7 +259,10 @@ async fn download_file(
         // Stream to .part file
         let mut file = match tokio::fs::File::create(&part).await {
             Ok(f) => f,
-            Err(e) => { outcome = Err(e.into()); break; }
+            Err(e) => {
+                outcome = Err(e.into());
+                break;
+            }
         };
 
         let mut stream = resp.bytes_stream();
@@ -247,7 +276,10 @@ async fn download_file(
                         break;
                     }
                 }
-                Err(_) => { write_ok = false; break; }
+                Err(_) => {
+                    write_ok = false;
+                    break;
+                }
             }
         }
 
@@ -273,7 +305,11 @@ async fn download_file(
     }
 
     if outcome.is_err() {
-        multi.println(format!("  ✗ gave up on {filename} after {MAX_RETRIES} attempts")).ok();
+        multi
+            .println(format!(
+                "  ✗ gave up on {filename} after {MAX_RETRIES} attempts"
+            ))
+            .ok();
     }
 
     outcome
